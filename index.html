@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>剪映人生 · Video Editor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #06060b;
+    --surface: #0c0c16;
+    --border: rgba(255,255,255,0.06);
+    --text: #e0e0e0;
+    --text-dim: #707080;
+    --accent: #00e5bf;
+    --accent2: #6c5ce7;
+    --glow: rgba(0,229,191,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Floating orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: rgba(0,229,191,0.06);
+    top: -150px; right: -100px;
+    animation: float1 12s ease-in-out infinite;
+  }
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: rgba(108,92,231,0.05);
+    bottom: -100px; left: -80px;
+    animation: float2 14s ease-in-out infinite;
+  }
+  @keyframes float1 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(-60px,40px) scale(1.1); }
+    66% { transform: translate(30px,-30px) scale(0.95); }
+  }
+  @keyframes float2 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(50px,-30px) scale(1.08); }
+    66% { transform: translate(-40px,50px) scale(0.92); }
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 0;
+    position: relative;
+    z-index: 10;
+  }
+  .logo {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 0 80px;
+    position: relative;
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.02);
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), #00cec9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-tagline {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    max-width: 500px;
+    font-weight: 300;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 60px;
+    margin-top: 56px;
+  }
+  .hero-stat h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+  .hero-stat p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Section titles ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .section-number {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    font-family: monospace;
+  }
+  .section-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 16px;
+  }
+
+  /* ── About ── */
+  .about {
+    padding: 80px 0;
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .about-avatar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .avatar-frame {
+    width: 280px;
+    height: 280px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(0,229,191,0.15), rgba(108,92,231,0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .avatar-frame .initials {
+    font-size: 5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .avatar-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 36px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--accent), transparent, var(--accent2)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: ringPulse 3s ease-in-out infinite;
+  }
+  @keyframes ringPulse {
+    0%,100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  .about-text h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .about-text p {
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+  .about-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .about-tags span {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    transition: all 0.3s;
+  }
+  .about-tags span:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--glow);
+  }
+
+  /* ── Skills ── */
+  .skills {
+    padding: 80px 0;
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 28px;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .skill-card:hover::before { opacity: 1; }
+  .skill-card:hover {
+    border-color: rgba(0,229,191,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .skill-icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  .skill-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .skill-card p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .skill-bar-wrap {
+    margin-top: 18px;
+  }
+  .skill-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+  }
+  .skill-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .skill-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1.5s ease;
+  }
+
+  /* ── Showreel ── */
+  .showreel {
+    padding: 80px 0;
+  }
+  .showreel-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .showreel-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16/10;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.4s;
+  }
+  .showreel-item:hover {
+    border-color: var(--accent);
+    transform: scale(1.02);
+  }
+  .showreel-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(108,92,231,0.1), rgba(0,229,191,0.1));
+  }
+  .showreel-placeholder span {
+    font-size: 2.5rem;
+    opacity: 0.3;
+  }
+  .showreel-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  }
+  .showreel-overlay h4 {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .showreel-overlay p {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* ── Experience ── */
+  .experience {
+    padding: 80px 0;
+  }
+  .timeline { position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 40px;
+    padding: 0 0 48px 32px;
+    position: relative;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -4px; top: 6px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--glow);
+  }
+  .timeline-date {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-family: monospace;
+    letter-spacing: 0.06em;
+    padding-top: 2px;
+  }
+  .timeline-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .timeline-content .role {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .timeline-content p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ── Contact ── */
+  .contact {
+    padding: 80px 0 120px;
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+  }
+  .contact-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .contact-info > p {
+    color: var(--text-dim);
+    margin-bottom: 36px;
+    font-size: 0.95rem;
+  }
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.3s;
+  }
+  .contact-link:hover {
+    border-color: var(--accent);
+    background: rgba(0,229,191,0.04);
+  }
+  .contact-link .icon {
+    font-size: 1.3rem;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+  }
+  .contact-link .info {
+    font-size: 0.85rem;
+  }
+  .contact-link .info strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+    outline: none;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    border-color: var(--accent);
+  }
+  .contact-form textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  .contact-form button {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, var(--accent), #00b894);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+  .contact-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,229,191,0.3);
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  /* ── Music Player ── */
+  .music-toggle {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 999;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s;
+    backdrop-filter: blur(20px);
+  }
+  .music-toggle:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 32px var(--glow);
+  }
+  .music-toggle .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 16px;
+  }
+  .music-toggle .bars span {
+    width: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .music-toggle.playing .bars span {
+    animation: barBounce 0.9s ease-in-out infinite;
+  }
+  .music-toggle.playing .bars span:nth-child(1) { height: 8px; animation-delay: 0s; }
+  .music-toggle.playing .bars span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+  .music-toggle.playing .bars span:nth-child(3) { height: 6px; animation-delay: 0.3s; }
+  .music-toggle.playing .bars span:nth-child(4) { height: 12px; animation-delay: 0.45s; }
+  .music-toggle.paused .bars span {
+    height: 4px;
+    opacity: 0.4;
+  }
+  @keyframes barBounce {
+    0%,100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.4); }
+  }
+  .music-tooltip {
+    position: absolute;
+    right: 60px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: all 0.3s;
+  }
+  .music-toggle:hover .music-tooltip {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .container { padding: 0 24px; }
+    .about-grid,
+    .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+    .skills-grid,
+    .showreel-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 32px; flex-wrap: wrap; }
+    .nav-links { display: none; }
+    .timeline-item { grid-template-columns: 80px 1fr; gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background Music -->
+<audio id="bgm" loop preload="auto">
+  <source src="bgm.mp3" type="audio/mpeg">
+</audio>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="container">
+
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">CUT.STUDIO</div>
+    <ul class="nav-links">
+      <li><a href="#about">关于</a></li>
+      <li><a href="#skills">技能</a></li>
+      <li><a href="#works">作品</a></li>
+      <li><a href="#experience">经历</a></li>
+      <li><a href="#contact">联系</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">✦ AVAILABLE FOR PROJECTS</div>
+    <h1>
+      用镜头<br>
+      <span class="highlight">讲述故事</span>
+    </h1>
+    <p class="hero-tagline">
+      专业剪辑师，专注于影视后期、广告剪辑与短片创作。
+      每一帧都是对完美的追求。
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <h3>8+</h3>
+        <p>年剪辑经验</p>
+      </div>
+      <div class="hero-stat">
+        <h3>200+</h3>
+        <p>完成项目</p>
+      </div>
+      <div class="hero-stat">
+        <h3>30+</h3>
+        <p>合作品牌</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="about" id="about">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>关于我</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-avatar">
+        <div class="avatar-frame">
+          <div class="avatar-ring"></div>
+          <span class="initials">J</span>
+        </div>
+      </div>
+      <div class="about-text">
+        <h3>你好，我是剪辑师</h3>
+        <p>
+          一名热爱视觉叙事的剪辑师，现居北京。拥有丰富的影视后期制作经验，
+          擅长通过节奏、色彩与音效的融合，将素材转化为具有感染力的视觉作品。
+        </p>
+        <p>
+          曾参与多部纪录片、TVC广告及品牌短片的后期制作。
+          对细节的执着和对新技术的热情，让我在每一个项目中都力求突破。
+          我相信好的剪辑不只是拼接画面，而是为观众创造一种情绪体验。
+        </p>
+        <div class="about-tags">
+          <span>影视后期</span>
+          <span>广告剪辑</span>
+          <span>短片创作</span>
+          <span>调色</span>
+          <span>声音设计</span>
+          <span>动态图形</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section class="skills" id="skills">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>专业技能</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-icon">🎬</div>
+        <h4>剪辑</h4>
+        <p>精通叙事结构与节奏控制，善于在纷繁素材中找到最佳表达方式。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>Premiere Pro</span><span>95%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:95%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>DaVinci Resolve</span><span>90%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:90%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>Final Cut Pro</span><span>85%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:85%"></div></div>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🎨</div>
+        <h4>调色</h4>
+        <p>通过色彩建立情绪基调，让画面更具电影感与视觉冲击力。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>DaVinci 调色</span><span>88%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:88%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>LUT 设计</span><span>80%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:80%"></div></div>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🔊</div>
+        <h4>声音设计</h4>
+        <p>音频修整、音效设计与混音，让声音成为叙事的一部分。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>Audition</span><span>80%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>混音与音效</span><span>78%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:78%"></div></div>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">⚡</div>
+        <h4>动态图形</h4>
+        <p>将文字与图形融入画面，创造流畅的视觉转场与信息传达。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>After Effects</span><span>82%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:82%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>Blender</span><span>65%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:65%"></div></div>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🎯</div>
+        <h4>特效合成</h4>
+        <p>绿幕抠像、运动跟踪与多图层合成，拓展画面的可能性。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>AE 合成</span><span>80%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>跟踪 / 抠像</span><span>75%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:75%"></div></div>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">📦</div>
+        <h4>后期流程</h4>
+        <p>从素材管理到多格式交付，建立高效的后期制作管线。</p>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>项目管理</span><span>88%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:88%"></div></div>
+        </div>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar-label"><span>多格式交付</span><span>90%</span></div>
+          <div class="skill-bar"><div class="skill-bar-fill" style="width:90%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showreel -->
+  <section class="showreel" id="works">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>精选作品</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="showreel-grid">
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>品牌广告 · 运动系列</h4>
+          <p>TVC · 30s</p>
+        </div>
+      </div>
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>纪录片 · 城市印象</h4>
+          <p>纪录片 · 15min</p>
+        </div>
+      </div>
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>音乐短片 · 夜行</h4>
+          <p>MV · 4min</p>
+        </div>
+      </div>
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>时装品牌 · 春夏系列</h4>
+          <p>TVC · 45s</p>
+        </div>
+      </div>
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>企业宣传片 · 科技向善</h4>
+          <p>宣传片 · 3min</p>
+        </div>
+      </div>
+      <div class="showreel-item">
+        <div class="showreel-placeholder"><span>▶</span></div>
+        <div class="showreel-overlay">
+          <h4>短片 · 归途</h4>
+          <p>剧情短片 · 8min</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section class="experience" id="experience">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>工作经历</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">2023 — 至今</div>
+        <div class="timeline-content">
+          <h4>自由剪辑师</h4>
+          <p class="role">Freelance · 北京</p>
+          <p>与多个品牌及制作公司合作，负责广告、纪录片及短片的后期剪辑与调色。独立完成从粗剪到精剪的全流程制作。</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2020 — 2023</div>
+        <div class="timeline-content">
+          <h4>高级剪辑师</h4>
+          <p class="role">某影视制作公司 · 北京</p>
+          <p>主导多个TVC项目的后期制作，带领3人后期小组。建立公司内部剪辑规范与素材管理流程，项目交付效率提升40%。</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2018 — 2020</div>
+        <div class="timeline-content">
+          <h4>剪辑师</h4>
+          <p class="role">某广告公司 · 上海</p>
+          <p>负责品牌广告、社交媒体短视频的剪辑制作。累计完成100+条商业短片，服务客户涵盖快消、汽车、科技行业。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact" id="contact">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>联系我</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>开始一个项目</h3>
+        <p>无论你是品牌方、制作公司还是独立创作者，如果你有好的故事需要被讲述，欢迎随时联系我。</p>
+        <div class="contact-links">
+          <a href="#" class="contact-link">
+            <span class="icon">✉</span>
+            <span class="info"><strong>Email</strong>hello@cutstudio.com</span>
+          </a>
+          <a href="#" class="contact-link">
+            <span class="icon">📱</span>
+            <span class="info"><strong>微信</strong>editor_2024</span>
+          </a>
+          <a href="#" class="contact-link">
+            <span class="icon">📷</span>
+            <span class="info"><strong>Instagram</strong>@cut.studio</span>
+          </a>
+        </div>
+      </div>
+      <form class="contact-form" onsubmit="event.preventDefault(); alert('感谢你的留言，我会尽快回复！');">
+        <input type="text" placeholder="你的名字">
+        <input type="email" placeholder="邮箱地址">
+        <textarea placeholder="告诉我你的项目想法..."></textarea>
+        <button type="submit">发送消息</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2024 Cut.Studio — Designed with passion for visual storytelling.</p>
+  </footer>
+
+</div>
+
+<!-- Music Toggle -->
+<button class="music-toggle paused" id="musicToggle" aria-label="音乐播放">
+  <span class="music-tooltip">背景音乐</span>
+  <span class="bars">
+    <span></span><span></span><span></span><span></span>
+  </span>
+</button>
+
+<script>
+  // ── Music Player ──
+  const bgm = document.getElementById('bgm');
+  const musicToggle = document.getElementById('musicToggle');
+
+  function playMusic() {
+    bgm.volume = 0.35;
+    bgm.play().then(() => {
+      musicToggle.classList.remove('paused');
+      musicToggle.classList.add('playing');
+    }).catch(() => {});
+  }
+
+  function pauseMusic() {
+    bgm.pause();
+    musicToggle.classList.remove('playing');
+    musicToggle.classList.add('paused');
+  }
+
+  musicToggle.addEventListener('click', () => {
+    if (bgm.paused) {
+      playMusic();
+    } else {
+      pauseMusic();
+    }
+  });
+
+  // Autoplay attempt on first user interaction (browsers block autoplay without gesture)
+  let autoplayAttempted = false;
+  function tryAutoplay() {
+    if (autoplayAttempted) return;
+    autoplayAttempted = true;
+    playMusic();
+  }
+  document.addEventListener('click', tryAutoplay, { once: true });
+  document.addEventListener('keydown', tryAutoplay, { once: true });
+
+  // Animate skill bars on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bars = entry.target.querySelectorAll('.skill-bar-fill');
+        bars.forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0%';
+          setTimeout(() => { bar.style.width = w; }, 100);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.skill-card').forEach(card => observer.observe(card));
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>
